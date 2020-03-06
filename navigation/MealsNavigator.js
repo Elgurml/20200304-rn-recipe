@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform }                 from "react-native";
+import { Platform, Text }                 from "react-native";
 import { createAppContainer }       from "react-navigation";
 import { createStackNavigator }     from "react-navigation-stack";
 import { createBottomTabNavigator } from "react-navigation-tabs";
@@ -18,6 +18,14 @@ const defaulStackNavOptions = {
 	headerStyle: {
 		backgroundColor:
 			Platform.OS === "android" ? Colors.primaryColor : ""
+	},
+	headerTitleStyle: {
+		fontFamily: "open-sans-bold",
+		fontWeight: undefined
+	},
+	headerBackTitleStyle: {
+		fontFamily: "open-sans-bold",
+		fontWeight: undefined
 	},
 	headerTintColor:
 		Platform.OS === "android" ? "white" : Colors.primaryColor,
@@ -63,7 +71,8 @@ const tabScreenConfig = {
 					/>
 				);
 			},
-			tabBarColor: Colors.primaryColor
+			tabBarColor: Colors.primaryColor,
+			tabBarLabel: Platform.OS === "android" ? <Text style={{fontFamily: "open-sans-bold"}} >Meals</Text> : "Meals"
 		}
 	},
 	Favorite: {
@@ -78,7 +87,8 @@ const tabScreenConfig = {
 					/>
 				);
 			},
-			tabBarColor: Colors.accentColor
+			tabBarColor: Colors.accentColor,
+			tabBarLabel: Platform.OS === "android" ? <Text style={{fontFamily: "open-sans-bold"}} >Favorite</Text> : "Favorite"
 		}
 	}
 };
@@ -94,6 +104,10 @@ const MealsFavTabNavigator =
 		})
 		: createBottomTabNavigator(tabScreenConfig, {
 				tabBarOptions: {
+					labelStyle: {
+						fontFamily: "open-sans-bold",
+						fontWeight: undefined
+					},
 					activeTintColor: Colors.accentColor
 				}
 		});
