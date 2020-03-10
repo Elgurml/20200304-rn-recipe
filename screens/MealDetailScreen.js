@@ -1,11 +1,12 @@
-import React from "react";
-import { StyleSheet, Text, View, Button, Image } from "react-native";
+import React, { useEffect, useCallback } from "react";
+import { StyleSheet, Text, View, Image } from "react-native";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { ScrollView } from "react-native-gesture-handler";
+import { useSelector, useDispatch } from "react-redux";
 
-import { MEALS } from "../data/dummy-data";
 import HeaderButton from "../components/HeaderButton";
 import DefaultText from "../components/DefaultText";
+import { toggleFavorite } from "../store/actions/meal";
 
 const ListItem = props => {
 	return (
@@ -16,9 +17,33 @@ const ListItem = props => {
 };
 
 const MealDetailScreen = props => {
+	const availableMeals = useSelector(state => state.meals.meals);
 	const mealId = props.navigation.getParam("mealId");
+	// method .some() returns true or false
+	const currentMealIsFavorite = useSelector(state =>
+		state.meals.favoriteMeals.some(meal => meal.id === mealId)
+	);
 
-	const selectedMeal = MEALS.find(meal => meal.id === mealId);
+	const selectedMeal = availableMeals.find(meal => meal.id === mealId);
+
+	const dispatch = useDispatch();
+
+	// useCallback it there to avoid infinite loop and it wrap the other function
+	const toggleFavoriteHandler = useCallback(() => {
+		dispatch(toggleFavorite(mealId));
+	}, [dispatch, mealId]);
+
+	// to be able to use our store in navigation we need setParams(it merges with other params unless it already exists, in this case it overwrite the old one. we do this because it's not possible to use hooks like "useSelector" outside a function or another hook). "useEffect" is to avoid infinite loop. problem is that the component renders before the title is loaded => looks ugly.
+	// way to avoid this is by using props sent to this component => adding title to MealList.js
+
+	useEffect(() => {
+		// props.navigation.setParams({ mealTitle: selectedMeal.title })
+		props.navigation.setParams({ toggleFav: toggleFavoriteHandler });
+	}, [toggleFavoriteHandler]);
+
+	useEffect(() => {
+		props.navigation.setParams({ isFav: currentMealIsFavorite })
+	}, [currentMealIsFavorite])
 
 	return (
 		<ScrollView>
@@ -48,18 +73,19 @@ const MealDetailScreen = props => {
 };
 
 MealDetailScreen.navigationOptions = navigationData => {
-	const mealId = navigationData.navigation.getParam("mealId");
-	const selectedMeal = MEALS.find(meal => meal.id === mealId);
+	// const mealId = navigationData.navigation.getParam("mealId");
+	const mealTitle = navigationData.navigation.getParam("mealTitle");
+	const toggleFavorite = navigationData.navigation.getParam("toggleFav");
+	const isFavorite = navigationData.navigation.getParam("isFav")
+	// const selectedMeal = MEALS.find(meal => meal.id === mealId);
 	return {
-		headerTitle: selectedMeal.title,
+		headerTitle: mealTitle,
 		headerRight: () => (
 			<HeaderButtons HeaderButtonComponent={HeaderButton}>
 				<Item
 					title="Favorite"
-					iconName="ios-star"
-					onPress={() => {
-						console.log("Mark as favorite!");
-					}}
+					iconName={ isFavorite ? "ios-star" : "ios-star-outline" }
+					onPress={toggleFavorite}
 				/>
 			</HeaderButtons>
 		)
@@ -86,7 +112,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		borderColor: "#ccc",
 		borderWidth: 1,
-		padding:10
+		padding: 10
 	}
 });
 
